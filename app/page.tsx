@@ -1,64 +1,41 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-
-const roles = [
-  { id: 'manufacturer', label: "I'm a Manufacturer", icon: '🏭' },
-  { id: 'business', label: "I'm a Business Buyer", icon: '💼' },
-  { id: 'individual', label: "I'm an Individual Buyer", icon: '🛒' },
-  { id: 'builder', label: "I'm a Builder", icon: '🪖' },
-];
-
 export default function Home() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f1a3a] to-black flex items-center justify-center overflow-hidden px-4">
-      {/* Háttér finom animáció */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,#00f0ff_0%,transparent_50%)] animate-pulse-slow" />
-      </div>
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Háttérkép + overlay a jobb olvashatóságért */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-40" // opacity 30-50% ajánlott, hogy ne legyen túl erős
+        style={{ backgroundImage: "url('/hero-bg.jpg')" }} // ide tedd a fájlnevet
+      />
+      {/* Opcionális gradient overlay extra sötétítéshez */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
-      <div className="relative z-10 text-center">
-        <h1 className="text-6xl md:text-8xl font-bold text-[#00f0ff] tracking-wider mb-6 animate-glow">
-          SMARTAI NEXUS
+      <div className="relative z-10 text-center px-4 max-w-4xl">
+        <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight text-cyan-400">
+          SMARTARTAI NEXUS
         </h1>
-        <p className="text-2xl md:text-4xl text-gray-300 mb-12">
+        <p className="text-2xl md:text-4xl mb-8">
           Global Intelligence Platform
         </p>
-        <p className="text-xl md:text-2xl text-gray-400 mb-16">
+        <p className="text-xl md:text-2xl mb-12 opacity-90">
           Find. Build. Buy. Instantly.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
-          {roles.map((role) => (
-            <motion.div
-              key={role.id}
-              className="bg-black/40 border border-[#00f0ff]/30 p-8 md:p-10 rounded-3xl cursor-pointer backdrop-blur-xl hover:border-[#00f0ff] group"
-              onClick={() => router.push(`/${role.id}`)}
-              initial={{ scale: 1, opacity: 0.9 }}
-              whileHover={{
-                scale: 1.12,
-                boxShadow: '0 0 40px 15px rgba(0, 240, 255, 0.4)',
-                transition: { type: 'spring', stiffness: 300, damping: 15 }
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="text-7xl md:text-8xl mb-6 transition-transform group-hover:scale-110">
-                {role.icon}
-              </div>
-              <h3 className="text-xl md:text-2xl font-semibold text-white">
-                {role.label}
-              </h3>
-            </motion.div>
-          ))}
+        {/* Gombok gridben vagy flexben – tedd responszívvá */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          {/* Manufacturer gomb */}
+          <button className="bg-gray-900/80 border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-900/30 transition p-8 rounded-xl flex flex-col items-center">
+            <div className="text-5xl mb-4">🏭</div> {/* vagy SVG ikon */}
+            <span className="text-lg font-semibold">I'm a Manufacturer</span>
+          </button>
+
+          {/* Hasonlóan a többi: Business Buyer, Individual Buyer, Builder */}
+          {/* ... másold be a többi gombot */}
         </div>
 
-        <p className="mt-16 text-lg md:text-xl text-gray-500">
+        <p className="mt-16 text-lg opacity-70">
           Launching Soon – Stay Tuned
         </p>
       </div>
-    </div>
+    </main>
   );
 }
