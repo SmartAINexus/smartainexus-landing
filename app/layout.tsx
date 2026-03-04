@@ -4,9 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SMARTAI NEXUS – Global AI Marketplace for Manufacturers & Buyers",
+  title: "SMART AI NEXUS – Global AI Marketplace for Manufacturers & Buyers",
   description:
-    "Find. Build. Buy. Instantly. SMARTAI NEXUS is a global AI marketplace connecting manufacturers, businesses, builders and individual buyers.",
+    "Find. Build. Buy. Instantly. SMART AI NEXUS is a global AI marketplace connecting manufacturers, businesses, builders and individual buyers.",
 };
 
 export default function RootLayout({
