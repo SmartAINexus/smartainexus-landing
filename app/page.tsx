@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -36,7 +36,13 @@ export default function Home() {
             <motion.div
               key={role.id}
               className="relative p-8 rounded-3xl backdrop-blur-xl border border-[#00f0ff]/30 cursor-pointer overflow-hidden group bg-black/30"
-              onClick={() => router.push(`/${role.id}`)}
+              // CSAK A HIBÁS 2 KÁRTYÁN NINCS onClick – marad a főoldalon
+              onClick={() => {
+                if (role.id === 'business' || role.id === 'individual') {
+                  router.push(`/${role.id}`) // ezek maradhatnak, ha akarod
+                }
+                // Manufacturer és Builder: NEM navigál sehova → nincs 404
+              }}
               initial={{ scale: 1, opacity: 0.9 }}
               whileHover={{
                 scale: 1.15,
