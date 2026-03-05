@@ -1,71 +1,91 @@
 "use client";
 
-import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion';
 
 const roles = [
-  { id: 'manufacturer', label: "I'm a Manufacturer", icon: '🏭', color: '#00f0ff' },
-  { id: 'business', label: "I'm a Business Buyer", icon: '💼', color: '#00bfff' },
-  { id: 'individual', label: "I'm an Individual Buyer", icon: '🛒', color: '#1e90ff' },
-  { id: 'builder', label: "I'm a Builder", icon: '🪖', color: '#4169e1' },
-]
+  { title: "I'm a Manufacturer", icon: '🏭', desc: "Gyártóként használd az AI-t a termelés forradalmasítására." },
+  { title: "I'm a Business Buyer", icon: '💼', desc: "Üzleti vevőként találj megbízható partnereket és exkluzív ajánlatokat." },
+  { title: "I'm an Individual Buyer", icon: '🛒', desc: "Magánvevőként vásárolj okosan, személyre szabott lehetőségekkel." },
+  { title: "I'm a Builder", icon: '🪖', desc: "Építs, tesztelj és alkoss AI segítségével – próbáld ki ingyen!" },
+];
 
 export default function Home() {
-  const router = useRouter()
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f1a3a] to-black flex items-center justify-center relative overflow-hidden">
-      {/* Finom háttér animáció */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,#00f0ff_0%,transparent_50%)]" />
+    <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 text-white relative overflow-hidden">
+      {/* Finom háttér animáció / particle effekt */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,#00f0ff_0%,transparent_50%)] animate-pulse-slow" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_80%,#ff00aa_0%,transparent_50%)] animate-pulse-slow-delay" />
       </div>
 
-      <div className="relative z-10 text-center px-4">
-        <h1 className="text-6xl md:text-8xl font-bold text-[#00f0ff] mb-6 tracking-wider animate-pulse">
+      <div className="relative z-10 container mx-auto px-6 py-24 flex flex-col items-center justify-center min-h-screen">
+        {/* Nagy cím */}
+        <motion.h1
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="text-6xl md:text-9xl font-extrabold mb-6 tracking-[0.2em] bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-glow"
+        >
           SMARTAI NEXUS
-        </h1>
-        <p className="text-2xl md:text-4xl text-gray-300 mb-16">
+        </motion.h1>
+
+        {/* Alcím */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="text-2xl md:text-4xl text-center mb-8 text-gray-300 max-w-4xl"
+        >
           Global Intelligence Platform
-        </p>
-        <p className="text-xl md:text-2xl text-gray-400 mb-12">
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 1 }}
+          className="text-xl md:text-2xl text-center mb-16 text-cyan-300"
+        >
           Find. Build. Buy. Instantly.
-        </p>
+        </motion.p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-          {roles.map((role) => (
+        {/* 4 lebegő kártya */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-7xl">
+          {roles.map((role, index) => (
             <motion.div
-              key={role.id}
-              className="relative p-8 rounded-3xl backdrop-blur-xl border border-[#00f0ff]/30 cursor-pointer overflow-hidden group bg-black/30"
-              // CSAK A HIBÁS 2 KÁRTYÁN NINCS onClick – marad a főoldalon
-              onClick={() => {
-                if (role.id === 'business' || role.id === 'individual') {
-                  router.push(`/${role.id}`) // ezek maradhatnak, ha akarod
-                }
-                // Manufacturer és Builder: NEM navigál sehova → nincs 404
-              }}
-              initial={{ scale: 1, opacity: 0.9 }}
-              whileHover={{
-                scale: 1.15,
-                opacity: 1,
-                boxShadow: `0 0 40px 15px ${role.color}40`,
-                transition: { type: 'spring', stiffness: 300, damping: 15 }
-              }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              key={role.title}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.2 + 1, duration: 0.8, ease: "easeOut" }}
+              className="group relative bg-black/40 backdrop-blur-2xl border border-cyan-500/20 rounded-3xl p-8 hover:border-cyan-400/60 hover:scale-[1.08] transition-all duration-500 cursor-default shadow-2xl shadow-cyan-900/30"
             >
-              {/* Glow hoverkor */}
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#00f0ff]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Glow és hover effekt */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl" />
 
-              <div className="text-7xl mb-6">{role.icon}</div>
-              <h3 className="text-2xl font-semibold text-[#00f0ff]">{role.label}</h3>
+              <div className="text-8xl mb-6 text-center group-hover:scale-110 transition-transform duration-500">
+                {role.icon}
+              </div>
+
+              <h3 className="text-3xl font-bold text-center mb-4 text-cyan-200 group-hover:text-cyan-100">
+                {role.title}
+              </h3>
+
+              <p className="text-gray-300 text-center text-lg">
+                {role.desc}
+              </p>
             </motion.div>
           ))}
         </div>
 
-        <p className="mt-20 text-xl text-gray-500">
+        {/* Teaser alul */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2, duration: 1 }}
+          className="mt-20 text-2xl text-cyan-400 text-center tracking-wide"
+        >
           Launching Soon – Stay Tuned
-        </p>
+        </motion.p>
       </div>
     </div>
-  )
+  );
 }
