@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient'; // importáld a te kliensedet
+import { supabase } from '../../lib/supabaseClient';   // ← relatív import (biztonságos Vercelen)
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
@@ -21,11 +21,9 @@ export default function SignupPage() {
     try {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-
-      // Automatikus profil létrejön a trigger miatt → mutassuk role választót
-      setShowRoleSelect(true);
+      setShowRoleSelect(true); // trigger miatt már van profil
     } catch (err: any) {
-      setError(err.message || 'Regisztrációs hiba');
+      setError(err.message || 'Regisztrációs hiba történt');
     } finally {
       setLoading(false);
     }
@@ -35,7 +33,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Nincs user');
+      if (!user) throw new Error('Nincs bejelentkezve');
 
       const { error } = await supabase
         .from('profiles')
@@ -44,7 +42,7 @@ export default function SignupPage() {
 
       if (error) throw error;
 
-      router.push('/dashboard'); // vagy ahova akarod
+      router.push('/dashboard'); // később létrehozhatod
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -52,64 +50,73 @@ export default function SignupPage() {
     }
   };
 
+  // Role választó képernyő
   if (showRoleSelect) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl mb-4">Válassz szerepkört</h2>
-        <select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          className="border p-2 mb-4 w-full"
-        >
-          <option value="manufacturer">Manufacturer</option>
-          <option value="business_buyer">Business Buyer</option>
-          <option value="individual_buyer">Individual Buyer</option>
-          <option value="builder">Builder</option>
-        </select>
-        <button
-          onClick={handleRoleSave}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-        >
-          {loading ? 'Mentés...' : 'Mentés és folytatás'}
-        </button>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow">
+          <h2 className="text-3xl font-bold text-center mb-6">Válassz szerepkört</h2>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="w-full border border-gray-300 p-3 rounded-lg mb-6 text-lg"
+          >
+            <option value="manufacturer">Gyártó (Manufacturer)</option>
+            <option value="business_buyer">Üzleti vevő (Business Buyer)</option>
+            <option value="individual_buyer">Magánvevő (Individual Buyer)</option>
+            <option value="builder">Építő (Builder)</option>
+          </select>
+          <button
+            onClick={handleRoleSave}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-lg text-lg transition"
+          >
+            {loading ? 'Mentés...' : 'Mentés és belépés'}
+          </button>
+          {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+        </div>
       </div>
     );
   }
 
+  // Regisztrációs űrlap
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h1 className="text-3xl mb-6">Regisztráció</h1>
-      <form onSubmit={handleSignup}>
-        <input
-          type="email"
-          placeholder="Email cím"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 mb-4 w-full"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Jelszó"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 mb-4 w-full"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-green-600 text-white px-4 py-2 rounded w-full"
-        >
-          {loading ? 'Folyamatban...' : 'Regisztráció'}
-        </button>
-      </form>
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-      <p className="mt-4 text-center">
-        Már van fiókod? <a href="/login" className="text-blue-600">Bejelentkezés</a>
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow">
+        <h1 className="text-4xl font-bold text-center mb-8">Regisztráció</h1>
+        <form onSubmit={handleSignup}>
+          <input
+            type="email"
+            placeholder="Email cím"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border border-gray-300 p-4 rounded-lg mb-4 text-lg"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Jelszó"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border border-gray-300 p-4 rounded-lg mb-6 text-lg"
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-lg text-lg transition"
+          >
+            {loading ? 'Regisztráció folyamatban...' : 'Regisztráció'}
+          </button>
+        </form>
+        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+        <p className="text-center mt-6 text-gray-600">
+          Már van fiókod?{' '}
+          <a href="/login" className="text-blue-600 font-medium hover:underline">
+            Bejelentkezés
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
