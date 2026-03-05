@@ -1,52 +1,65 @@
-"use client";  // ← EZ A SOR KELL – Client Componentté teszi az oldalt
+'use client'
+
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+
+const roles = [
+  { id: 'manufacturer', label: "I'm a Manufacturer", icon: '🏭', color: '#00f0ff' },
+  { id: 'business', label: "I'm a Business Buyer", icon: '💼', color: '#00bfff' },
+  { id: 'individual', label: "I'm an Individual Buyer", icon: '🛒', color: '#1e90ff' },
+  { id: 'builder', label: "I'm a Builder", icon: '🪖', color: '#4169e1' },
+]
 
 export default function Home() {
+  const router = useRouter()
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 text-white flex flex-col items-center justify-center px-4">
-      {/* Nagy cím */}
-      <h1 className="text-6xl md:text-9xl font-extrabold mb-8 text-center tracking-tight bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
-        SMARTARTAI NEXUS
-      </h1>
-
-      {/* Alcím */}
-      <p className="text-2xl md:text-4xl text-center mb-16 text-gray-300 max-w-4xl">
-        Global Intelligence Platform — Find. Build. Buy. Instantly.
-      </p>
-
-      {/* 4 kártya – kattintásra marad a főoldalon, nincs 404 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-7xl">
-        {[
-          { title: "I'm a Manufacturer", desc: "Gyártóként csatlakozz a jövőhöz és használd az AI-t a termelés optimalizálására." },
-          { title: "I'm a Business Buyer", desc: "Üzleti vevőként találj megbízható partnereket és szerezz exkluzív ajánlatokat." },
-          { title: "I'm an Individual Buyer", desc: "Magánvevőként vásárolj okosan, személyre szabott ajánlatokkal." },
-          { title: "I'm a Builder", desc: "Építs és tesztelj saját projekteket AI segítségével – próbáld ki ingyen!" },
-        ].map((item) => (
-          <div
-            key={item.title}
-            className="group relative bg-gray-900/50 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 hover:border-cyan-400 hover:scale-105 transition-all duration-500 cursor-pointer shadow-2xl"
-            onClick={() => {
-              // Semmi nem történik – marad a főoldalon, nincs 404
-              // Ha később akarod, ide jöhet pl. alert("Hamamosan elérhető!");
-            }}
-          >
-            {/* Hover effekt */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
-            
-            <h3 className="text-3xl font-bold text-center mb-4 text-cyan-300 group-hover:text-cyan-100">
-              {item.title}
-            </h3>
-            
-            <p className="text-gray-400 text-center text-lg">
-              {item.desc}
-            </p>
-          </div>
-        ))}
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f1a3a] to-black flex items-center justify-center relative overflow-hidden">
+      {/* Finom háttér animáció */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,#00f0ff_0%,transparent_50%)]" />
       </div>
 
-      {/* Alul teaser szöveg */}
-      <p className="mt-20 text-2xl text-gray-400 text-center">
-        Launching Soon – Stay Tuned
-      </p>
+      <div className="relative z-10 text-center px-4">
+        <h1 className="text-6xl md:text-8xl font-bold text-[#00f0ff] mb-6 tracking-wider animate-pulse">
+          SMARTAI NEXUS
+        </h1>
+        <p className="text-2xl md:text-4xl text-gray-300 mb-16">
+          Global Intelligence Platform
+        </p>
+        <p className="text-xl md:text-2xl text-gray-400 mb-12">
+          Find. Build. Buy. Instantly.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          {roles.map((role) => (
+            <motion.div
+              key={role.id}
+              className="relative p-8 rounded-3xl backdrop-blur-xl border border-[#00f0ff]/30 cursor-pointer overflow-hidden group bg-black/30"
+              onClick={() => router.push(`/${role.id}`)}
+              initial={{ scale: 1, opacity: 0.9 }}
+              whileHover={{
+                scale: 1.15,
+                opacity: 1,
+                boxShadow: `0 0 40px 15px ${role.color}40`,
+                transition: { type: 'spring', stiffness: 300, damping: 15 }
+              }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            >
+              {/* Glow hoverkor */}
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#00f0ff]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              <div className="text-7xl mb-6">{role.icon}</div>
+              <h3 className="text-2xl font-semibold text-[#00f0ff]">{role.label}</h3>
+            </motion.div>
+          ))}
+        </div>
+
+        <p className="mt-20 text-xl text-gray-500">
+          Launching Soon – Stay Tuned
+        </p>
+      </div>
     </div>
-  );
+  )
 }
