@@ -7,7 +7,7 @@ export default function Home() {
       {/* Háttérkép – cseréld a tiedre vagy az egyik keresettre */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-30" // 30% opacity, hogy ne nyomja el a szöveget
-        style={{ backgroundImage: "url('/images/hero-bg.png')" }} // ide a fájlneved
+        style={{ backgroundImage: "url('/images/hero-bg.png.jpg')" }} // ide a fájlneved
       />
       {/* Extra sötét overlay a jobb olvashatóságért */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
