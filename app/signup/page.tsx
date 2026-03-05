@@ -1,15 +1,14 @@
 "use client";
 
 import { createClient } from '@supabase/supabase-js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// 🔧 Dinamikus renderelés (ez oldja meg a "supabaseUrl is required" hibát)
+export const dynamic = 'force-dynamic';
 
 export default function SignupPage() {
+  const [supabase, setSupabase] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,8 +17,18 @@ export default function SignupPage() {
   const [selectedRole, setSelectedRole] = useState('individual_buyer');
   const router = useRouter();
 
+  // Client-oldali Supabase inicializálás (biztonságos build-hez)
+  useEffect(() => {
+    const client = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    setSupabase(client);
+  }, []);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) return;
     setLoading(true);
     setError(null);
 
@@ -35,6 +44,7 @@ export default function SignupPage() {
   };
 
   const handleRoleSave = async () => {
+    if (!supabase) return;
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -46,7 +56,6 @@ export default function SignupPage() {
         .eq('id', user.id);
 
       if (error) throw error;
-
       router.push('/');
     } catch (err: any) {
       setError(err.message);
@@ -54,6 +63,10 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+  if (!supabase) {
+    return <div className="min-h-screen flex items-center justify-center">Betöltés...</div>;
+  }
 
   if (showRoleSelect) {
     return (
