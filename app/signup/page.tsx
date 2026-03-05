@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';   // ← relatív import (biztonságos Vercelen)
+import { supabase } from '@/lib/supabaseClient';   // ← @/ alias (most már működik)
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
@@ -21,7 +21,7 @@ export default function SignupPage() {
     try {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      setShowRoleSelect(true); // trigger miatt már van profil
+      setShowRoleSelect(true);
     } catch (err: any) {
       setError(err.message || 'Regisztrációs hiba történt');
     } finally {
@@ -42,7 +42,7 @@ export default function SignupPage() {
 
       if (error) throw error;
 
-      router.push('/dashboard'); // később létrehozhatod
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -50,7 +50,6 @@ export default function SignupPage() {
     }
   };
 
-  // Role választó képernyő
   if (showRoleSelect) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -79,7 +78,6 @@ export default function SignupPage() {
     );
   }
 
-  // Regisztrációs űrlap
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow">
