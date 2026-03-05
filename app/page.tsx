@@ -1,3 +1,5 @@
+"use client";  // ← EZ A SOR KELL – Client Componentté teszi az oldalt
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 text-white flex flex-col items-center justify-center px-4">
