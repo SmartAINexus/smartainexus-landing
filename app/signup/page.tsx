@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// 🔧 Dinamikus renderelés (ez oldja meg a "supabaseUrl is required" hibát)
 export const dynamic = 'force-dynamic';
 
 export default function SignupPage() {
@@ -17,7 +16,6 @@ export default function SignupPage() {
   const [selectedRole, setSelectedRole] = useState('individual_buyer');
   const router = useRouter();
 
-  // Client-oldali Supabase inicializálás (biztonságos build-hez)
   useEffect(() => {
     const client = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,9 +31,27 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin + '/', 
+        },
+      });
+
       if (error) throw error;
-      setShowRoleSelect(true);
+
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
+        setShowRoleSelect(true);
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInError) throw signInError;
+        setShowRoleSelect(true);
+      }
     } catch (err: any) {
       setError(err.message || 'Hiba a regisztráció során');
     } finally {
@@ -46,9 +62,14 @@ export default function SignupPage() {
   const handleRoleSave = async () => {
     if (!supabase) return;
     setLoading(true);
+    setError(null);
+
     try {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) throw refreshError;
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Nincs bejelentkezve');
+      if (!user) throw new Error('Nincs bejelentkezve – próbáld újra');
 
       const { error } = await supabase
         .from('profiles')
@@ -56,9 +77,10 @@ export default function SignupPage() {
         .eq('id', user.id);
 
       if (error) throw error;
+
       router.push('/');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Hiba a role mentésekor');
     } finally {
       setLoading(false);
     }
