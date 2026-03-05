@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // importáld a te kliensedet
+import { supabase } from '../../lib/supabaseClient'; // importáld a te kliensedet
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
