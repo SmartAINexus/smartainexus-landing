@@ -335,3 +335,4 @@ export default function Page() {
     </main>
   );
 }
+"use client";
