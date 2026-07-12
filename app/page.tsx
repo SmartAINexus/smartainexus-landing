@@ -1,71 +1,64 @@
-"use client";
-
-import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-
-const roles = [
-  { id: 'manufacturer', label: "I'm a Manufacturer", icon: '🏭', color: '#00f0ff' },
-  { id: 'business', label: "I'm a Business Buyer", icon: '💼', color: '#00bfff' },
-  { id: 'individual', label: "I'm an Individual Buyer", icon: '🛒', color: '#1e90ff' },
-  { id: 'builder', label: "I'm a Builder", icon: '🪖', color: '#4169e1' },
-]
+const launchPrinciples = [
+  "Csak ellenőrzött pályázati források",
+  "Magyarázható jogosultsági és illeszkedési elemzés",
+  "Kötelező emberi és ügyféloldali jóváhagyások",
+  "Szervezetenként elkülönített, auditálható adatok",
+];
 
 export default function Home() {
-  const router = useRouter()
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f1a3a] to-black flex items-center justify-center relative overflow-hidden">
-      {/* Finom háttér animáció */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,#00f0ff_0%,transparent_50%)]" />
-      </div>
+    <main>
+      <nav className="nav" aria-label="Fő navigáció">
+        <a className="brand" href="#top" aria-label="GrantBridge Europe kezdőlap">
+          <span className="brandMark">GB</span>
+          <span>GrantBridge Europe</span>
+        </a>
+        <span className="pilotBadge">Romániai pilot előkészítés</span>
+      </nav>
 
-      <div className="relative z-10 text-center px-4">
-        <h1 className="text-6xl md:text-8xl font-bold text-[#00f0ff] mb-6 tracking-wider animate-pulse">
-          SMARTAI NEXUS
-        </h1>
-        <p className="text-2xl md:text-4xl text-gray-300 mb-16">
-          Global Intelligence Platform
+      <section className="hero" id="top">
+        <div className="eyebrow">Európai nonprofit támogatási platform</div>
+        <h1>A megfelelő támogatástól a kész pályázatig.</h1>
+        <p className="lead">
+          A GrantBridge Europe segít a nonprofit szervezeteknek rendszerezni az adataikat,
+          ellenőrzött támogatási lehetőségeket találni és biztonságos, felügyelt folyamatban
+          előkészíteni pályázataikat.
         </p>
-        <p className="text-xl md:text-2xl text-gray-400 mb-12">
-          Find. Build. Buy. Instantly.
+        <div className="actions">
+          <a className="primary" href="#pilot">Pilot áttekintése</a>
+          <a className="secondary" href="#principles">Működési alapelvek</a>
+        </div>
+      </section>
+
+      <section className="panel" id="pilot">
+        <div>
+          <div className="sectionLabel">Első kiadás</div>
+          <h2>Kontrollált, meghívásos romániai pilot</h2>
+        </div>
+        <p>
+          Ez a tiszta alkalmazásalap még nem fogad valódi ügyféladatot és nem végez hivatalos
+          benyújtást. A következő fejlesztési lépések a szervezeti profil, a dokumentumtár,
+          a pályázati nyilvántartás és Elena digitális ügyintéző biztonságos felépítése.
         </p>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-          {roles.map((role) => (
-            <motion.div
-              key={role.id}
-              className="relative p-8 rounded-3xl backdrop-blur-xl border border-[#00f0ff]/30 cursor-pointer overflow-hidden group bg-black/30"
-              // CSAK A HIBÁS 2 KÁRTYÁN NINCS onClick – marad a főoldalon
-              onClick={() => {
-                if (role.id === 'business' || role.id === 'individual') {
-                  router.push(`/${role.id}`) // ezek maradhatnak, ha akarod
-                }
-                // Manufacturer és Builder: NEM navigál sehova → nincs 404
-              }}
-              initial={{ scale: 1, opacity: 0.9 }}
-              whileHover={{
-                scale: 1.15,
-                opacity: 1,
-                boxShadow: `0 0 40px 15px ${role.color}40`,
-                transition: { type: 'spring', stiffness: 300, damping: 15 }
-              }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            >
-              {/* Glow hoverkor */}
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#00f0ff]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              <div className="text-7xl mb-6">{role.icon}</div>
-              <h3 className="text-2xl font-semibold text-[#00f0ff]">{role.label}</h3>
-            </motion.div>
+      <section className="principles" id="principles" aria-labelledby="principles-title">
+        <div className="sectionLabel">Nem alku tárgya</div>
+        <h2 id="principles-title">Bizalomra tervezett működés</h2>
+        <div className="grid">
+          {launchPrinciples.map((principle, index) => (
+            <article className="card" key={principle}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{principle}</h3>
+            </article>
           ))}
         </div>
+      </section>
 
-        <p className="mt-20 text-xl text-gray-500">
-          Launching Soon – Stay Tuned
-        </p>
-      </div>
-    </div>
-  )
+      <footer>
+        <strong>GrantBridge Europe</strong>
+        <span>Szökőcs Green SRL · Szilágy megye, Románia</span>
+      </footer>
+    </main>
+  );
 }

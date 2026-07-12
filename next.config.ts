@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Ha később kell, itt bővítheted (pl. images, redirects stb.)
-  // Most üresen hagyjuk, mert a build hibát csak ez nem okoz
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  reactStrictMode: true,
 };
 
-module.exports = nextConfig;
+export default nextConfig;
