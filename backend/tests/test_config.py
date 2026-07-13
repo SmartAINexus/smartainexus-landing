@@ -15,5 +15,27 @@ def test_production_rejects_untrusted_tenant_header_auth() -> None:
 
 
 def test_production_accepts_oidc_auth_mode() -> None:
-    settings = Settings(app_env="production", auth_mode="oidc")
+    settings = Settings(
+        app_env="production",
+        auth_mode="oidc",
+        oidc_issuer="https://identity.example.test/tenant/v2.0",
+        oidc_audience="grantbridge-api",
+    )
     assert settings.auth_mode == "oidc"
+
+
+def test_oidc_mode_requires_https_issuer_and_audience() -> None:
+    with pytest.raises(ValidationError, match="requires OIDC_ISSUER"):
+        Settings(auth_mode="oidc")
+    with pytest.raises(ValidationError, match="must use HTTPS"):
+        Settings(
+            auth_mode="oidc",
+            oidc_issuer="http://identity.example.test/tenant/v2.0",
+            oidc_audience="grantbridge-api",
+        )
+    with pytest.raises(ValidationError, match="query or fragment"):
+        Settings(
+            auth_mode="oidc",
+            oidc_issuer="https://identity.example.test/tenant/v2.0?unsafe=true",
+            oidc_audience="grantbridge-api",
+        )

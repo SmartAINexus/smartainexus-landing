@@ -65,7 +65,10 @@ def test_missing_tenant_header_is_rejected(client: TestClient) -> None:
 
 def test_oidc_mode_fails_closed_until_token_validation_is_wired(client: TestClient) -> None:
     app.dependency_overrides[get_settings] = lambda: Settings(
-        app_env="production", auth_mode="oidc"
+        app_env="production",
+        auth_mode="oidc",
+        oidc_issuer="https://identity.example.test/tenant/v2.0",
+        oidc_audience="grantbridge-api",
     )
     response = client.get(
         "/api/v1/grants",

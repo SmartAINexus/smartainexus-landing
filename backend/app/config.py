@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import HttpUrl, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://grantbridge:change-me@localhost/grantbridge"
     log_level: str = "INFO"
     api_v1_prefix: str = "/api/v1"
+    oidc_issuer: HttpUrl | None = None
+    oidc_audience: str | None = None
+    oidc_tenant_claim: str = "grantbridge_tenant_id"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -20,6 +23,15 @@ class Settings(BaseSettings):
             raise ValueError(
                 "Production cannot use the untrusted X-Tenant-ID development header; configure OIDC."
             )
+        if self.auth_mode == "oidc":
+            if self.oidc_issuer is None or not self.oidc_audience:
+                raise ValueError("OIDC mode requires OIDC_ISSUER and OIDC_AUDIENCE")
+            if self.oidc_issuer.scheme != "https":
+                raise ValueError("OIDC_ISSUER must use HTTPS")
+            if self.oidc_issuer.query or self.oidc_issuer.fragment:
+                raise ValueError("OIDC_ISSUER cannot contain a query or fragment")
+            if not self.oidc_tenant_claim.strip():
+                raise ValueError("OIDC_TENANT_CLAIM cannot be blank")
         return self
 
 
