@@ -2,7 +2,17 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -77,6 +87,22 @@ class OpportunityMatch(Base):
     __table_args__ = (
         Index("ix_opportunity_matches_tenant_id", "tenant_id"),
         Index("ix_opportunity_matches_tenant_opportunity", "tenant_id", "opportunity_id"),
+        UniqueConstraint(
+            "tenant_id", "opportunity_id", "version", name="uq_match_tenant_opportunity_version"
+        ),
+        UniqueConstraint(
+            "id", "tenant_id", "opportunity_id", name="uq_match_lineage_target"
+        ),
+        ForeignKeyConstraint(
+            ["supersedes_id", "tenant_id", "opportunity_id"],
+            [
+                "opportunity_matches.id",
+                "opportunity_matches.tenant_id",
+                "opportunity_matches.opportunity_id",
+            ],
+            name="fk_match_supersedes_same_scope",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint("score >= 0 AND score <= 100", name="ck_match_score_range"),
         CheckConstraint("requires_human_review = true", name="ck_match_human_review_required"),
         CheckConstraint("review_status IN ('draft', 'reviewed', 'rejected')", name="ck_match_review_status"),
@@ -87,9 +113,8 @@ class OpportunityMatch(Base):
     opportunity_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("opportunities.id", ondelete="CASCADE")
     )
-    supersedes_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("opportunity_matches.id", ondelete="SET NULL"), nullable=True
-    )
+    supersedes_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True)
+    version: Mapped[int] = mapped_column()
     score: Mapped[int] = mapped_column()
     factors: Mapped[list[dict[str, object]]] = mapped_column(JSON)
     missing_information: Mapped[list[str]] = mapped_column(JSON)

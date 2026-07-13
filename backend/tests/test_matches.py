@@ -50,6 +50,9 @@ def test_match_is_tenant_scoped_auditable_and_always_returns_to_draft(
 
     assert first.id != updated.id
     assert updated.supersedes_id == first.id
+    assert first.version == 1
+    assert updated.version == 2
+    assert updated.calculated_at >= first.calculated_at
     assert updated.score == 74
     assert updated.review_status == "draft"
     assert updated.requires_human_review is True

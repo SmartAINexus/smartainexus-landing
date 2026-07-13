@@ -34,7 +34,7 @@ def store_match_result(db: Session, payload: OpportunityMatchIn) -> OpportunityM
         select(OpportunityMatch).where(
             OpportunityMatch.tenant_id == payload.tenant_id,
             OpportunityMatch.opportunity_id == payload.opportunity_id,
-        ).order_by(OpportunityMatch.calculated_at.desc(), OpportunityMatch.id.desc())
+        ).order_by(OpportunityMatch.version.desc()).with_for_update()
     )
     values = payload.model_dump()
     values["requires_human_review"] = True
@@ -42,6 +42,7 @@ def store_match_result(db: Session, payload: OpportunityMatchIn) -> OpportunityM
         **values,
         review_status="draft",
         supersedes_id=previous.id if previous else None,
+        version=(previous.version + 1) if previous else 1,
     )
     db.add(match)
     db.commit()

@@ -51,5 +51,5 @@ jobs:
         run: pytest ai/tests -q
       - name: Synthetic crawler to backend integration
         env:
-          PYTHONPATH: backend
+          PYTHONPATH: backend:.
         run: pytest integration_tests -q
