@@ -3,6 +3,10 @@ node_modules/
 out/
 build/
 coverage/
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.tsbuildinfo
 *.log
 .env
 .env.*
