@@ -36,7 +36,35 @@ class CharacterLimitTests(unittest.TestCase):
         self.assertFalse(counted.valid)
         self.assertTrue(ignored.valid)
 
+    def test_platform_can_preserve_crlf_as_two_characters(self) -> None:
+        normalized = validate_limit("a\r\nb", FieldLimit("normalized", 3))
+        preserved = validate_limit(
+            "a\r\nb", FieldLimit("preserved", 4, normalize_line_breaks=False)
+        )
+        self.assertEqual(normalized.count, 3)
+        self.assertEqual(preserved.count, 4)
+
+    def test_lone_surrogate_is_rejected_in_every_count_mode(self) -> None:
+        for mode in CountMode:
+            with self.subTest(mode=mode):
+                with self.assertRaisesRegex(ValueError, "invalid Unicode surrogate"):
+                    validate_limit("\ud800", FieldLimit("invalid", 10, mode=mode))
+
+    def test_zwj_sequence_has_explicit_codepoint_and_utf16_counts(self) -> None:
+        family = "👩‍👩‍👧‍👦"
+        codepoints = validate_limit(family, FieldLimit("family", 20))
+        utf16 = validate_limit(
+            family, FieldLimit("family", 20, mode=CountMode.UTF16_CODE_UNITS)
+        )
+        self.assertEqual(codepoints.count, 7)
+        self.assertEqual(utf16.count, 11)
+
+    def test_count_spaces_false_removes_only_ascii_space(self) -> None:
+        result = validate_limit(
+            "a \t\u00a0b", FieldLimit("spacing", 10, count_spaces=False)
+        )
+        self.assertEqual(result.count, 4)
+
 
 if __name__ == "__main__":
     unittest.main()
-
