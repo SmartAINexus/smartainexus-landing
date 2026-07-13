@@ -68,3 +68,29 @@ class Opportunity(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )
+
+
+class OpportunityMatch(Base):
+    """Tenant-scoped, reviewable assessment of one global opportunity."""
+
+    __tablename__ = "opportunity_matches"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "opportunity_id", name="uq_match_tenant_opportunity"),
+        Index("ix_opportunity_matches_tenant_id", "tenant_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ngos.id", ondelete="CASCADE"))
+    opportunity_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("opportunities.id", ondelete="CASCADE")
+    )
+    score: Mapped[int] = mapped_column()
+    factors: Mapped[list[dict[str, object]]] = mapped_column(JSON)
+    missing_information: Mapped[list[str]] = mapped_column(JSON)
+    exclusion_risks: Mapped[list[str]] = mapped_column(JSON)
+    requires_human_review: Mapped[bool] = mapped_column(default=True)
+    review_status: Mapped[str] = mapped_column(String(32), default="draft")
+    model_provider: Mapped[str] = mapped_column(String(80))
+    model_id: Mapped[str] = mapped_column(String(120))
+    prompt_version: Mapped[str] = mapped_column(String(40))
+    calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

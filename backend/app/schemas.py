@@ -62,5 +62,18 @@ class OpportunityIngest(BaseModel):
     provenance: dict[str, object]
 
 
+class OpportunityMatchIn(BaseModel):
+    tenant_id: uuid.UUID
+    opportunity_id: uuid.UUID
+    score: int = Field(ge=0, le=100)
+    factors: list[dict[str, object]] = Field(default_factory=list, max_length=50)
+    missing_information: list[str] = Field(default_factory=list, max_length=100)
+    exclusion_risks: list[str] = Field(default_factory=list, max_length=100)
+    requires_human_review: bool = True
+    model_provider: str = Field(min_length=2, max_length=80)
+    model_id: str = Field(min_length=2, max_length=120)
+    prompt_version: str = Field(min_length=1, max_length=40)
+
+
 class ErrorResponse(BaseModel):
     detail: str
