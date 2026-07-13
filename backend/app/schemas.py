@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
 
@@ -69,7 +70,7 @@ class OpportunityMatchIn(BaseModel):
     factors: list[dict[str, object]] = Field(default_factory=list, max_length=50)
     missing_information: list[str] = Field(default_factory=list, max_length=100)
     exclusion_risks: list[str] = Field(default_factory=list, max_length=100)
-    requires_human_review: bool = True
+    requires_human_review: Literal[True] = True
     model_provider: str = Field(min_length=2, max_length=80)
     model_id: str = Field(min_length=2, max_length=120)
     prompt_version: str = Field(min_length=1, max_length=40)

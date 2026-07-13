@@ -1,3 +1,5 @@
+import pytest
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.ingestion import store_match_result, upsert_opportunity
@@ -46,7 +48,23 @@ def test_match_is_tenant_scoped_auditable_and_always_returns_to_draft(
     db_session.commit()
     updated = store_match_result(db_session, payload.model_copy(update={"score": 74}))
 
-    assert first.id == updated.id
+    assert first.id != updated.id
+    assert updated.supersedes_id == first.id
     assert updated.score == 74
     assert updated.review_status == "draft"
     assert updated.requires_human_review is True
+    assert first.review_status == "reviewed"
+    assert first.score == 72
+
+
+def test_match_input_rejects_disabling_human_review() -> None:
+    with pytest.raises(ValidationError):
+        OpportunityMatchIn(
+            tenant_id="00000000-0000-0000-0000-000000000001",
+            opportunity_id="00000000-0000-0000-0000-000000000002",
+            score=50,
+            requires_human_review=False,
+            model_provider="synthetic-provider",
+            model_id="synthetic-model",
+            prompt_version="match-v1",
+        )

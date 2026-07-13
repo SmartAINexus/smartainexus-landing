@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -75,14 +75,20 @@ class OpportunityMatch(Base):
 
     __tablename__ = "opportunity_matches"
     __table_args__ = (
-        UniqueConstraint("tenant_id", "opportunity_id", name="uq_match_tenant_opportunity"),
         Index("ix_opportunity_matches_tenant_id", "tenant_id"),
+        Index("ix_opportunity_matches_tenant_opportunity", "tenant_id", "opportunity_id"),
+        CheckConstraint("score >= 0 AND score <= 100", name="ck_match_score_range"),
+        CheckConstraint("requires_human_review = true", name="ck_match_human_review_required"),
+        CheckConstraint("review_status IN ('draft', 'reviewed', 'rejected')", name="ck_match_review_status"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ngos.id", ondelete="CASCADE"))
     opportunity_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("opportunities.id", ondelete="CASCADE")
+    )
+    supersedes_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("opportunity_matches.id", ondelete="SET NULL"), nullable=True
     )
     score: Mapped[int] = mapped_column()
     factors: Mapped[list[dict[str, object]]] = mapped_column(JSON)
