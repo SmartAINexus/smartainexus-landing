@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -7,9 +8,11 @@ from sqlalchemy.orm import Session
 from ai.backend_adapter import as_backend_match_payload
 from ai.contracts import EvidenceState, MatchFactor, MatchResult
 from app.db import Base
+from app.identity import opportunity_source_key
 from app.ingestion import store_match_result, upsert_opportunity
-from app.models import NGO
+from app.models import NGO, OpportunityObservation
 from app.schemas import OpportunityIngest, OpportunityMatchIn
+from grantbridge_crawler.dedupe import content_hash
 from grantbridge_crawler.parser import DataAttributeOpportunityParser
 from grantbridge_crawler.policy import SourceApproval
 
@@ -44,13 +47,37 @@ def test_synthetic_crawler_record_round_trips_into_global_backend_store() -> Non
     with Session(engine) as session:
         first, created = upsert_opportunity(session, payload)
         second, created_again = upsert_opportunity(session, payload)
+        original_content_hash = second.content_hash
+        changed_record = replace(record, description="Corrected synthetic description")
+        changed_record = replace(
+            changed_record,
+            content_hash=content_hash(changed_record),
+            provenance=replace(
+                changed_record.provenance,
+                retrieved_at=changed_record.provenance.retrieved_at + timedelta(hours=1),
+            ),
+        )
+        changed_payload = OpportunityIngest.model_validate(
+            changed_record.as_ingest_payload()
+        )
+        changed, created_after_change = upsert_opportunity(session, changed_payload)
+        observations = session.query(OpportunityObservation).order_by(
+            OpportunityObservation.observed_at
+        ).all()
 
     assert created is True
     assert created_again is False
+    assert created_after_change is False
     assert first.id == second.id
+    assert second.id == changed.id
     assert second.source_key == record.source_key
-    assert second.content_hash == record.content_hash
+    assert original_content_hash == record.content_hash
     assert second.provenance["official_source"] is True
+    assert changed.description == "Corrected synthetic description"
+    assert len(observations) == 2
+    assert observations[0].content_snapshot["description"] == record.description
+    assert observations[1].content_snapshot["description"] == changed_record.description
+    assert observations[0].provenance["retrieved_at"] != observations[1].provenance["retrieved_at"]
 
 
 def test_synthetic_ai_match_round_trips_into_auditable_backend_store() -> None:
@@ -65,17 +92,19 @@ def test_synthetic_ai_match_round_trips_into_auditable_backend_store() -> None:
         )
         session.add(ngo)
         session.commit()
+        source_identifier = "SYN-E2E-OPPORTUNITY"
+        source_url = "https://example.org/e2e-opportunity"
         opportunity, _ = upsert_opportunity(
             session,
             OpportunityIngest(
-                source_identifier="SYN-E2E-OPPORTUNITY",
-                source_key="c" * 64,
+                source_identifier=source_identifier,
+                source_key=opportunity_source_key(source_identifier, source_url),
                 content_hash="d" * 64,
                 title="Synthetic E2E opportunity",
                 funder="Synthetic authority",
                 description="Synthetic description",
                 eligibility=["Romanian nonprofit"],
-                official_source_url="https://example.org/e2e-opportunity",
+                official_source_url=source_url,
                 timezone="Europe/Bucharest",
                 provenance={"official_source": True},
                 observed_at="2026-07-13T00:00:00+00:00",

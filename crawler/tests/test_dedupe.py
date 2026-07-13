@@ -47,6 +47,11 @@ def test_hash_changes_when_deadline_changes() -> None:
     assert content_hash(opportunity()) != content_hash(changed)
 
 
+def test_hash_changes_when_description_changes() -> None:
+    changed = opportunity(description="Corrected synthetic programme description")
+    assert content_hash(opportunity()) != content_hash(changed)
+
+
 def test_canonical_url_drops_fragment_and_tracking() -> None:
     assert canonical_url("https://EXAMPLE.test/a/?utm_campaign=x&b=2#a") == "https://example.test/a?b=2"
 

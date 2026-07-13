@@ -3,6 +3,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.ingestion import store_match_result, upsert_opportunity
+from app.identity import opportunity_source_key
 from app.models import NGO
 from app.schemas import OpportunityIngest, OpportunityMatchIn
 
@@ -18,17 +19,19 @@ def test_match_is_tenant_scoped_auditable_and_always_returns_to_draft(
     )
     db_session.add(ngo)
     db_session.commit()
+    source_identifier = "SYN-MATCH-OPPORTUNITY"
+    source_url = "https://example.org/opportunity"
     opportunity, _ = upsert_opportunity(
         db_session,
         OpportunityIngest(
-            source_identifier="SYN-MATCH-OPPORTUNITY",
-            source_key="b" * 64,
+            source_identifier=source_identifier,
+            source_key=opportunity_source_key(source_identifier, source_url),
             content_hash="c" * 64,
             title="Synthetic opportunity",
             funder="Synthetic authority",
             description="Synthetic description",
             eligibility=["Synthetic eligibility"],
-            official_source_url="https://example.org/opportunity",
+            official_source_url=source_url,
             timezone="Europe/Bucharest",
             provenance={"official_source": True},
             observed_at="2026-07-13T00:00:00+00:00",

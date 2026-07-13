@@ -24,6 +24,7 @@ def upgrade() -> None:
         sa.Column("deadline", sa.DateTime(timezone=True), nullable=True),
         sa.Column("timezone", sa.String(64), nullable=False),
         sa.Column("provenance", sa.JSON(), nullable=False),
+        sa.Column("content_snapshot", sa.JSON(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),

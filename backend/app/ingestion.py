@@ -1,6 +1,9 @@
+import hmac
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.identity import opportunity_source_key
 from app.models import NGO, Opportunity, OpportunityMatch, OpportunityObservation
 from app.schemas import OpportunityIngest, OpportunityMatchIn
 
@@ -8,8 +11,16 @@ from app.schemas import OpportunityIngest, OpportunityMatchIn
 def upsert_opportunity(db: Session, payload: OpportunityIngest) -> tuple[Opportunity, bool]:
     """Insert or update one global opportunity by deterministic crawler hash."""
 
+    expected_key = opportunity_source_key(
+        payload.source_identifier, str(payload.official_source_url)
+    )
+    if not hmac.compare_digest(payload.source_key, expected_key):
+        raise ValueError("source_key does not match source identifier and URL")
     opportunity = db.scalar(
         select(Opportunity).where(Opportunity.source_key == payload.source_key)
+    )
+    content_snapshot = payload.model_dump(
+        mode="json", exclude={"provenance", "observed_at"}
     )
     values = payload.model_dump()
     observed_at = values.pop("observed_at")
@@ -20,6 +31,11 @@ def upsert_opportunity(db: Session, payload: OpportunityIngest) -> tuple[Opportu
         opportunity = Opportunity(**values, provenance=provenance)
         db.add(opportunity)
     else:
+        if (
+            opportunity.source_identifier != payload.source_identifier
+            or opportunity.official_source_url != str(payload.official_source_url)
+        ):
+            raise ValueError("source identity fields cannot change for an existing source_key")
         for key, value in values.items():
             setattr(opportunity, key, value)
         opportunity.provenance = provenance
@@ -38,6 +54,7 @@ def upsert_opportunity(db: Session, payload: OpportunityIngest) -> tuple[Opportu
                 content_hash=payload.content_hash,
                 observed_at=observed_at,
                 provenance=provenance,
+                content_snapshot=content_snapshot,
             )
         )
     db.commit()

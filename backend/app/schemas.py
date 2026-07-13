@@ -65,6 +65,13 @@ class OpportunityIngest(BaseModel):
     provenance: dict[str, object]
     observed_at: datetime
 
+    @field_validator("observed_at")
+    @classmethod
+    def require_observation_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("observed_at must include a UTC offset")
+        return value
+
 
 class OpportunityMatchIn(BaseModel):
     tenant_id: uuid.UUID
