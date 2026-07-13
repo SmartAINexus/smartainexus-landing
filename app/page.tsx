@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { languageNames, localeMetadata, locales, messages, type Locale } from "../src/i18n";
 
 type Profile = { name:string; type:string; country:string; mission:string; beneficiaries:string; budget:string; cofunding:boolean };
@@ -15,9 +15,9 @@ export default function Home() {
   const [step,setStep]=useState(0); const [profile,setProfile]=useState(initial); const [done,setDone]=useState(false);
   const patch=(key:keyof Profile,value:string|boolean)=>setProfile(current=>({...current,[key]:value}));
   const fields = [
-    <><Field label={t.orgName} value={profile.name} onChange={v=>patch("name",v)}/><Field label={t.orgType} value={profile.type} onChange={v=>patch("type",v)}/><Field label={t.country} value={profile.country} onChange={v=>patch("country",v)}/></>,
-    <><Field label={t.mission} value={profile.mission} onChange={v=>patch("mission",v)} area/><Field label={t.beneficiaries} value={profile.beneficiaries} onChange={v=>patch("beneficiaries",v)}/></>,
-    <><Field label={t.budget} value={profile.budget} onChange={v=>patch("budget",v)}/><label className="check"><input type="checkbox" checked={profile.cofunding} onChange={e=>patch("cofunding",e.target.checked)}/>{t.cofunding}</label></>,
+    <Fragment key="organisation"><Field label={t.orgName} value={profile.name} onChange={v=>patch("name",v)}/><Field label={t.orgType} value={profile.type} onChange={v=>patch("type",v)}/><Field label={t.country} value={profile.country} onChange={v=>patch("country",v)}/></Fragment>,
+    <Fragment key="mission"><Field label={t.mission} value={profile.mission} onChange={v=>patch("mission",v)} area/><Field label={t.beneficiaries} value={profile.beneficiaries} onChange={v=>patch("beneficiaries",v)}/></Fragment>,
+    <Fragment key="funding"><Field label={t.budget} value={profile.budget} onChange={v=>patch("budget",v)}/><label className="check"><input type="checkbox" checked={profile.cofunding} onChange={e=>patch("cofunding",e.target.checked)}/>{t.cofunding}</label></Fragment>,
     <dl className="review"><div><dt>{t.orgName}</dt><dd>{profile.name}</dd></div><div><dt>{t.country}</dt><dd>{profile.country}</dd></div><div><dt>{t.mission}</dt><dd>{profile.mission}</dd></div><div><dt>{t.budget}</dt><dd>{profile.budget}</dd></div></dl>
   ];
   const headings=[[t.orgTitle,t.orgHelp],[t.missionTitle,t.missionHelp],[t.fundingTitle,t.fundingHelp],[t.reviewTitle,t.reviewHelp]];

@@ -39,6 +39,8 @@ jobs:
       - run: pip install -e "./crawler[test]"
       - name: Backend tests
         working-directory: backend
+        env:
+          PYTHONPATH: .
         run: pytest -q
       - name: Crawler tests
         working-directory: crawler
