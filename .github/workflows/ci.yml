@@ -46,7 +46,7 @@ jobs:
         working-directory: crawler
         run: pytest -q
       - name: AI safety tests
-        run: python -m unittest discover -s ai/tests -v
+        run: pytest ai/tests -q
       - name: Synthetic crawler to backend integration
         env:
           PYTHONPATH: backend

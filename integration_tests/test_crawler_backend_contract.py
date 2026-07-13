@@ -4,9 +4,12 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from ai.backend_adapter import as_backend_match_payload
+from ai.contracts import EvidenceState, MatchFactor, MatchResult
 from app.db import Base
-from app.ingestion import upsert_opportunity
-from app.schemas import OpportunityIngest
+from app.ingestion import store_match_result, upsert_opportunity
+from app.models import NGO
+from app.schemas import OpportunityIngest, OpportunityMatchIn
 from grantbridge_crawler.parser import DataAttributeOpportunityParser
 from grantbridge_crawler.policy import SourceApproval
 
@@ -47,3 +50,57 @@ def test_synthetic_crawler_record_round_trips_into_global_backend_store() -> Non
     assert first.id == second.id
     assert second.normalized_hash == record.normalized_hash
     assert second.provenance["official_source"] is True
+
+
+def test_synthetic_ai_match_round_trips_into_auditable_backend_store() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        ngo = NGO(
+            official_name="Synthetic NGO",
+            registration_number="SYN-E2E-1",
+            country_code="RO",
+            contact_email="synthetic@example.org",
+        )
+        session.add(ngo)
+        session.commit()
+        opportunity, _ = upsert_opportunity(
+            session,
+            OpportunityIngest(
+                normalized_hash="c" * 64,
+                title="Synthetic E2E opportunity",
+                funder="Synthetic authority",
+                description="Synthetic description",
+                eligibility=["Romanian nonprofit"],
+                official_source_url="https://example.org/e2e-opportunity",
+                timezone="Europe/Bucharest",
+                provenance={"official_source": True},
+            ),
+        )
+        result = MatchResult(
+            score=81,
+            factors=(
+                MatchFactor(
+                    name="geography",
+                    score=100,
+                    rationale="Synthetic verified geography",
+                    evidence_state=EvidenceState.VERIFIED,
+                ),
+            ),
+            requires_human_review=True,
+        )
+        payload = OpportunityMatchIn.model_validate(
+            as_backend_match_payload(
+                result,
+                tenant_id=str(ngo.id),
+                opportunity_id=str(opportunity.id),
+                model_provider="synthetic-provider",
+                model_id="synthetic-model",
+                prompt_version="match-v1",
+            )
+        )
+        stored = store_match_result(session, payload)
+
+    assert stored.score == 81
+    assert stored.factors[0]["evidence_state"] == "verified"
+    assert stored.review_status == "draft"
