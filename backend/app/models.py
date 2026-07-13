@@ -65,7 +65,9 @@ class Opportunity(Base):
     __tablename__ = "opportunities"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    normalized_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    source_identifier: Mapped[str] = mapped_column(String(240))
+    source_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64))
     title: Mapped[str] = mapped_column(String(240))
     funder: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
@@ -125,3 +127,23 @@ class OpportunityMatch(Base):
     model_id: Mapped[str] = mapped_column(String(120))
     prompt_version: Mapped[str] = mapped_column(String(40))
     calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class OpportunityObservation(Base):
+    """Append-only provenance evidence for each observed source version."""
+
+    __tablename__ = "opportunity_observations"
+    __table_args__ = (
+        Index("ix_opportunity_observations_opportunity_id", "opportunity_id"),
+        UniqueConstraint(
+            "opportunity_id", "content_hash", "observed_at", name="uq_observation_version_time"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    opportunity_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("opportunities.id", ondelete="CASCADE")
+    )
+    content_hash: Mapped[str] = mapped_column(String(64))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    provenance: Mapped[dict[str, object]] = mapped_column(JSON)

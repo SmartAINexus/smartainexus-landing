@@ -21,7 +21,9 @@ def test_match_is_tenant_scoped_auditable_and_always_returns_to_draft(
     opportunity, _ = upsert_opportunity(
         db_session,
         OpportunityIngest(
-            normalized_hash="b" * 64,
+            source_identifier="SYN-MATCH-OPPORTUNITY",
+            source_key="b" * 64,
+            content_hash="c" * 64,
             title="Synthetic opportunity",
             funder="Synthetic authority",
             description="Synthetic description",
@@ -29,6 +31,7 @@ def test_match_is_tenant_scoped_auditable_and_always_returns_to_draft(
             official_source_url="https://example.org/opportunity",
             timezone="Europe/Bucharest",
             provenance={"official_source": True},
+            observed_at="2026-07-13T00:00:00+00:00",
         ),
     )
     payload = OpportunityMatchIn(

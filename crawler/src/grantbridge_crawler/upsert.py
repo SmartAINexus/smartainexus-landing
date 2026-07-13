@@ -27,9 +27,8 @@ class InMemoryOpportunityRepository:
         self.records = {}
 
     async def upsert(self, opportunity: FundingOpportunity) -> UpsertResult:
-        existing = self.records.get(opportunity.normalized_hash)
-        if existing == opportunity:
+        existing = self.records.get(opportunity.source_key)
+        if existing and existing.content_hash == opportunity.content_hash:
             return UpsertResult.UNCHANGED
-        self.records[opportunity.normalized_hash] = opportunity
+        self.records[opportunity.source_key] = opportunity
         return UpsertResult.UPDATED if existing else UpsertResult.INSERTED
-

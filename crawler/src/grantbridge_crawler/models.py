@@ -31,6 +31,7 @@ class Provenance:
 
 @dataclass(frozen=True, slots=True)
 class FundingOpportunity:
+    source_identifier: str
     title: str
     funder: str
     description: str
@@ -39,10 +40,12 @@ class FundingOpportunity:
     eligibility: tuple[str, ...]
     source_url: str
     provenance: Provenance
-    normalized_hash: str = ""
+    source_key: str = ""
+    content_hash: str = ""
 
     def as_dict(self) -> dict[str, Any]:
         return {
+            "source_identifier": self.source_identifier,
             "title": self.title,
             "funder": self.funder,
             "description": self.description,
@@ -51,14 +54,17 @@ class FundingOpportunity:
             "eligibility": list(self.eligibility),
             "source_url": self.source_url,
             "provenance": self.provenance.as_dict(),
-            "normalized_hash": self.normalized_hash,
+            "source_key": self.source_key,
+            "content_hash": self.content_hash,
         }
 
     def as_ingest_payload(self) -> dict[str, Any]:
         """Return the versioned backend ingestion contract without tenant data."""
 
         return {
-            "normalized_hash": self.normalized_hash,
+            "source_identifier": self.source_identifier,
+            "source_key": self.source_key,
+            "content_hash": self.content_hash,
             "title": self.title,
             "funder": self.funder,
             "description": self.description,
@@ -67,4 +73,5 @@ class FundingOpportunity:
             "deadline": self.deadline.isoformat(),
             "timezone": self.timezone,
             "provenance": self.provenance.as_dict(),
+            "observed_at": self.provenance.retrieved_at.isoformat(),
         }

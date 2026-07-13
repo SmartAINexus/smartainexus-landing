@@ -42,3 +42,12 @@ def content_hash(opportunity: FundingOpportunity) -> str:
     }
     serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def source_key(opportunity: FundingOpportunity) -> str:
+    payload = {
+        "source_identifier": _text(opportunity.source_identifier),
+        "source_url": canonical_url(opportunity.source_url),
+    }
+    serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()

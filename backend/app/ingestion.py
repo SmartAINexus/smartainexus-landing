@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import NGO, Opportunity, OpportunityMatch
+from app.models import NGO, Opportunity, OpportunityMatch, OpportunityObservation
 from app.schemas import OpportunityIngest, OpportunityMatchIn
 
 
@@ -9,17 +9,37 @@ def upsert_opportunity(db: Session, payload: OpportunityIngest) -> tuple[Opportu
     """Insert or update one global opportunity by deterministic crawler hash."""
 
     opportunity = db.scalar(
-        select(Opportunity).where(Opportunity.normalized_hash == payload.normalized_hash)
+        select(Opportunity).where(Opportunity.source_key == payload.source_key)
     )
     values = payload.model_dump()
+    observed_at = values.pop("observed_at")
+    provenance = values.pop("provenance")
     values["official_source_url"] = str(values["official_source_url"])
     created = opportunity is None
     if opportunity is None:
-        opportunity = Opportunity(**values)
+        opportunity = Opportunity(**values, provenance=provenance)
         db.add(opportunity)
     else:
         for key, value in values.items():
             setattr(opportunity, key, value)
+        opportunity.provenance = provenance
+    db.flush()
+    observation = db.scalar(
+        select(OpportunityObservation).where(
+            OpportunityObservation.opportunity_id == opportunity.id,
+            OpportunityObservation.content_hash == payload.content_hash,
+            OpportunityObservation.observed_at == observed_at,
+        )
+    )
+    if observation is None:
+        db.add(
+            OpportunityObservation(
+                opportunity_id=opportunity.id,
+                content_hash=payload.content_hash,
+                observed_at=observed_at,
+                provenance=provenance,
+            )
+        )
     db.commit()
     db.refresh(opportunity)
     return opportunity, created

@@ -13,7 +13,9 @@ def upgrade() -> None:
     op.create_table(
         "opportunities",
         sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("normalized_hash", sa.String(64), nullable=False),
+        sa.Column("source_identifier", sa.String(240), nullable=False),
+        sa.Column("source_key", sa.String(64), nullable=False),
+        sa.Column("content_hash", sa.String(64), nullable=False),
         sa.Column("title", sa.String(240), nullable=False),
         sa.Column("funder", sa.String(200), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
@@ -27,13 +29,33 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        "ix_opportunities_normalized_hash",
+        "ix_opportunities_source_key",
         "opportunities",
-        ["normalized_hash"],
+        ["source_key"],
         unique=True,
+    )
+    op.create_table(
+        "opportunity_observations",
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("opportunity_id", sa.Uuid(), nullable=False),
+        sa.Column("content_hash", sa.String(64), nullable=False),
+        sa.Column("observed_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("provenance", sa.JSON(), nullable=False),
+        sa.ForeignKeyConstraint(["opportunity_id"], ["opportunities.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "opportunity_id", "content_hash", "observed_at", name="uq_observation_version_time"
+        ),
+    )
+    op.create_index(
+        "ix_opportunity_observations_opportunity_id",
+        "opportunity_observations",
+        ["opportunity_id"],
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_opportunities_normalized_hash", table_name="opportunities")
+    op.drop_index("ix_opportunity_observations_opportunity_id", table_name="opportunity_observations")
+    op.drop_table("opportunity_observations")
+    op.drop_index("ix_opportunities_source_key", table_name="opportunities")
     op.drop_table("opportunities")

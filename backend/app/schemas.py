@@ -52,7 +52,9 @@ class GrantRead(BaseModel):
 
 
 class OpportunityIngest(BaseModel):
-    normalized_hash: str = Field(min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$")
+    source_identifier: str = Field(min_length=1, max_length=240)
+    source_key: str = Field(min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$")
+    content_hash: str = Field(min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$")
     title: str = Field(min_length=2, max_length=240)
     funder: str = Field(min_length=2, max_length=200)
     description: str = Field(min_length=2, max_length=20_000)
@@ -61,6 +63,7 @@ class OpportunityIngest(BaseModel):
     deadline: datetime | None = None
     timezone: str = Field(min_length=1, max_length=64)
     provenance: dict[str, object]
+    observed_at: datetime
 
 
 class OpportunityMatchIn(BaseModel):

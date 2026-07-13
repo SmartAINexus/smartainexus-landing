@@ -5,7 +5,7 @@ from datetime import datetime
 from html.parser import HTMLParser
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from .dedupe import content_hash
+from .dedupe import content_hash, source_key
 from .errors import ParseError
 from .models import FundingOpportunity, Provenance
 from .policy import SourceApproval
@@ -72,6 +72,7 @@ class DataAttributeOpportunityParser:
         results: list[FundingOpportunity] = []
         for index, raw in enumerate(collector.records, start=1):
             try:
+                source_identifier = str(raw["identifier"]).strip()
                 title = str(raw["title"]).strip()
                 funder = str(raw["funder"]).strip()
                 description = str(raw["description"]).strip()
@@ -81,7 +82,7 @@ class DataAttributeOpportunityParser:
                 eligibility = tuple(
                     item.strip() for item in raw.get("eligibility", []) if str(item).strip()
                 )
-                if not title or not funder or not description or not eligibility or deadline.tzinfo is None:
+                if not source_identifier or not title or not funder or not description or not eligibility or deadline.tzinfo is None:
                     raise ValueError("required field is blank or deadline has no UTC offset")
             except (KeyError, ValueError, ZoneInfoNotFoundError) as exc:
                 raise ParseError(f"Invalid opportunity record #{index}: {exc}") from exc
@@ -96,6 +97,7 @@ class DataAttributeOpportunityParser:
                 terms_evidence=approval.terms_evidence,
             )
             opportunity = FundingOpportunity(
+                source_identifier=source_identifier,
                 title=title,
                 funder=funder,
                 description=description,
@@ -105,7 +107,13 @@ class DataAttributeOpportunityParser:
                 source_url=source_url,
                 provenance=provenance,
             )
-            results.append(replace(opportunity, normalized_hash=content_hash(opportunity)))
+            results.append(
+                replace(
+                    opportunity,
+                    source_key=source_key(opportunity),
+                    content_hash=content_hash(opportunity),
+                )
+            )
         if not results:
             raise ParseError("No opportunity records found")
         return results

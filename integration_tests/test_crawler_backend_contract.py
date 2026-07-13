@@ -48,7 +48,8 @@ def test_synthetic_crawler_record_round_trips_into_global_backend_store() -> Non
     assert created is True
     assert created_again is False
     assert first.id == second.id
-    assert second.normalized_hash == record.normalized_hash
+    assert second.source_key == record.source_key
+    assert second.content_hash == record.content_hash
     assert second.provenance["official_source"] is True
 
 
@@ -67,7 +68,9 @@ def test_synthetic_ai_match_round_trips_into_auditable_backend_store() -> None:
         opportunity, _ = upsert_opportunity(
             session,
             OpportunityIngest(
-                normalized_hash="c" * 64,
+                source_identifier="SYN-E2E-OPPORTUNITY",
+                source_key="c" * 64,
+                content_hash="d" * 64,
                 title="Synthetic E2E opportunity",
                 funder="Synthetic authority",
                 description="Synthetic description",
@@ -75,6 +78,7 @@ def test_synthetic_ai_match_round_trips_into_auditable_backend_store() -> None:
                 official_source_url="https://example.org/e2e-opportunity",
                 timezone="Europe/Bucharest",
                 provenance={"official_source": True},
+                observed_at="2026-07-13T00:00:00+00:00",
             ),
         )
         result = MatchResult(

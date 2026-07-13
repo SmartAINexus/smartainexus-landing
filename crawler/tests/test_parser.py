@@ -37,11 +37,14 @@ def test_parses_structured_records_with_provenance() -> None:
     assert records[0].timezone == "Europe/Bucharest"
     assert len(records[0].eligibility) == 2
     assert records[0].provenance.allowlist_approval_id == "synthetic-fixture-only"
-    assert len(records[0].normalized_hash) == 64
+    assert records[0].source_identifier == "RO-SYN-GREEN-2026"
+    assert len(records[0].source_key) == 64
+    assert len(records[0].content_hash) == 64
 
 
 def test_rejects_missing_timezone_and_offset() -> None:
     html = """<article data-opportunity><h2 data-field='title'>Call</h2>
+    <span data-field='identifier'>SYN-MISSING-TZ</span>
     <span data-field='funder'>Synthetic funder</span>
     <p data-field='description'>Synthetic description</p>
     <time data-field='deadline' datetime='2026-09-30T17:00:00'></time>
