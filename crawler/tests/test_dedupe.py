@@ -20,6 +20,8 @@ def opportunity(**changes: object) -> FundingOpportunity:
     )
     base = FundingOpportunity(
         title="Community Green Transition",
+        funder="Synthetic Romanian Public Authority",
+        description="Synthetic programme description",
         deadline=datetime.fromisoformat("2026-09-30T17:00:00+03:00"),
         timezone="Europe/Bucharest",
         eligibility=("Romanian nonprofits", "Registered organisations"),

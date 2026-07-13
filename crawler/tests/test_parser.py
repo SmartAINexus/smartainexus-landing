@@ -31,6 +31,8 @@ def test_parses_structured_records_with_provenance() -> None:
     )
     assert len(records) == 2
     assert records[0].title == "Community Green Transition 2026"
+    assert records[0].funder == "Synthetic Romanian Public Authority"
+    assert records[0].description.startswith("Synthetic programme")
     assert records[0].deadline.isoformat() == "2026-09-30T17:00:00+03:00"
     assert records[0].timezone == "Europe/Bucharest"
     assert len(records[0].eligibility) == 2
@@ -40,6 +42,8 @@ def test_parses_structured_records_with_provenance() -> None:
 
 def test_rejects_missing_timezone_and_offset() -> None:
     html = """<article data-opportunity><h2 data-field='title'>Call</h2>
+    <span data-field='funder'>Synthetic funder</span>
+    <p data-field='description'>Synthetic description</p>
     <time data-field='deadline' datetime='2026-09-30T17:00:00'></time>
     <li data-field='eligibility'>Nonprofits</li></article>"""
     with pytest.raises(ParseError):
@@ -49,4 +53,3 @@ def test_rejects_missing_timezone_and_offset() -> None:
             retrieved_at=datetime.now(timezone.utc),
             approval=approval(),
         )
-

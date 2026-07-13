@@ -34,6 +34,7 @@ def canonical_url(value: str) -> str:
 def content_hash(opportunity: FundingOpportunity) -> str:
     payload = {
         "title": _text(opportunity.title),
+        "funder": _text(opportunity.funder),
         "deadline": opportunity.deadline.isoformat(),
         "timezone": _text(opportunity.timezone),
         "eligibility": sorted({_text(item) for item in opportunity.eligibility}),
@@ -41,4 +42,3 @@ def content_hash(opportunity: FundingOpportunity) -> str:
     }
     serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-

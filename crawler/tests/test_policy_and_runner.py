@@ -75,6 +75,8 @@ def test_policy_denial_happens_before_loader_navigation() -> None:
 
 def test_fixture_runner_parses_and_upserts_without_network() -> None:
     html = """<article data-opportunity><h2 data-field='title'>Synthetic call</h2>
+    <span data-field='funder'>Synthetic funder</span>
+    <p data-field='description'>Synthetic description</p>
     <time data-field='deadline' datetime='2026-09-30T17:00:00+03:00'></time>
     <span data-field='timezone'>Europe/Bucharest</span>
     <li data-field='eligibility'>Romanian nonprofits</li></article>"""

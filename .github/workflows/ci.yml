@@ -47,3 +47,7 @@ jobs:
         run: pytest -q
       - name: AI safety tests
         run: python -m unittest discover -s ai/tests -v
+      - name: Synthetic crawler to backend integration
+        env:
+          PYTHONPATH: backend
+        run: pytest integration_tests -q

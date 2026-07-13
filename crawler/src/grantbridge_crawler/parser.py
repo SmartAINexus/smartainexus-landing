@@ -73,13 +73,15 @@ class DataAttributeOpportunityParser:
         for index, raw in enumerate(collector.records, start=1):
             try:
                 title = str(raw["title"]).strip()
+                funder = str(raw["funder"]).strip()
+                description = str(raw["description"]).strip()
                 timezone = str(raw["timezone"]).strip()
                 ZoneInfo(timezone)
                 deadline = datetime.fromisoformat(str(raw["deadline"]).strip())
                 eligibility = tuple(
                     item.strip() for item in raw.get("eligibility", []) if str(item).strip()
                 )
-                if not title or not eligibility or deadline.tzinfo is None:
+                if not title or not funder or not description or not eligibility or deadline.tzinfo is None:
                     raise ValueError("required field is blank or deadline has no UTC offset")
             except (KeyError, ValueError, ZoneInfoNotFoundError) as exc:
                 raise ParseError(f"Invalid opportunity record #{index}: {exc}") from exc
@@ -95,6 +97,8 @@ class DataAttributeOpportunityParser:
             )
             opportunity = FundingOpportunity(
                 title=title,
+                funder=funder,
+                description=description,
                 deadline=deadline,
                 timezone=timezone,
                 eligibility=eligibility,
