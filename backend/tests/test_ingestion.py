@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.identity import opportunity_source_key
@@ -81,3 +82,73 @@ def test_opportunity_rejects_timezone_naive_observed_at() -> None:
         OpportunityIngest.model_validate(
             payload().model_dump() | {"observed_at": "2026-07-13T00:00:00"}
         )
+
+
+def test_concurrent_opportunity_insert_recovers_as_idempotent(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    existing, _ = upsert_opportunity(db_session, payload())
+    observation = db_session.query(OpportunityObservation).one()
+    scalar_results = iter([None, existing, observation])
+    monkeypatch.setattr(db_session, "scalar", lambda *_args, **_kwargs: next(scalar_results))
+
+    recovered, created = upsert_opportunity(db_session, payload())
+
+    assert created is False
+    assert recovered.id == existing.id
+    assert db_session.query(Opportunity).count() == 1
+    assert db_session.query(OpportunityObservation).count() == 1
+
+
+def test_concurrent_observation_insert_recovers_as_idempotent(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    existing, _ = upsert_opportunity(db_session, payload())
+    observation = db_session.query(OpportunityObservation).one()
+    scalar_results = iter([existing, None, observation])
+    monkeypatch.setattr(db_session, "scalar", lambda *_args, **_kwargs: next(scalar_results))
+
+    recovered, created = upsert_opportunity(db_session, payload())
+
+    assert created is False
+    assert recovered.id == existing.id
+    assert db_session.query(OpportunityObservation).count() == 1
+
+
+def test_unrelated_integrity_error_is_not_treated_as_concurrent_insert(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    existing, _ = upsert_opportunity(db_session, payload())
+    monkeypatch.setattr(db_session, "scalar", lambda *_args, **_kwargs: None)
+
+    def fail_with_foreign_integrity_error(*_args: object, **_kwargs: object) -> None:
+        raise IntegrityError("INSERT", {}, Exception("FOREIGN KEY constraint failed"))
+
+    monkeypatch.setattr(db_session, "flush", fail_with_foreign_integrity_error)
+
+    with pytest.raises(IntegrityError, match="FOREIGN KEY constraint failed"):
+        upsert_opportunity(db_session, payload())
+
+    assert existing.id is not None
+
+
+def test_duplicate_observation_with_divergent_evidence_is_rejected(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    existing, _ = upsert_opportunity(db_session, payload())
+    observation = db_session.query(OpportunityObservation).one()
+    divergent = payload().model_copy(
+        update={"provenance": {"official_source": True, "approval_id": "DIFFERENT"}}
+    )
+    scalar_results = iter([existing, None, observation])
+    monkeypatch.setattr(db_session, "scalar", lambda *_args, **_kwargs: next(scalar_results))
+
+    with pytest.raises(ValueError, match="conflicts with retained evidence"):
+        upsert_opportunity(db_session, divergent)
+
+    db_session.commit()
+    db_session.refresh(existing)
+    assert existing.description == "Synthetic description"
+    assert existing.provenance["approval_id"] == "SYNTHETIC-001"
+    assert db_session.query(Opportunity).count() == 1
+    assert db_session.query(OpportunityObservation).count() == 1
